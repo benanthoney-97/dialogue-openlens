@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "Dialogue Safety Helper",
+  "version": "0.1",
+  "description": "Highlight conversational cues for safety review.",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Safety Helper"
+  },
+  "permissions": [
+    "scripting",
+    "activeTab",
+    "storage"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://gemini.google.com/app/*",
+        "https://chatgpt.com/c/*"
+      ],
+      "js": ["contentScript.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  }
+}

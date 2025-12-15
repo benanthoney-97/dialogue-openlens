@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Dialogue Safety for Parents</title>
+  <link rel="stylesheet" href="parent.css" />
+</head>
+<body>
+  <div class="parent-shell">
+    <aside class="sidebar">
+      <div class="sidebar-heading">
+        <p class="eyebrow">Dialogue Safety</p>
+        <strong>Parent View</strong>
+      </div>
+      <nav class="sidebar-nav" aria-label="Parent navigation">
+        <button class="sidebar-item" data-view="status">
+          <span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-circle-fill" viewBox="0 0 16 16"><circle cx="8" cy="8" r="8"/></svg></span>
+          <span>Status</span>
+        </button>
+        <button class="sidebar-item" data-view="feed">
+          <span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-list-ul" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M5 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m-3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2m0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2m0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2"/></svg></span>
+          <span>Feed</span>
+        </button>
+        <button class="sidebar-item" data-view="guardrails">
+          <span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-shield-fill-check" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 0c-.69 0-1.843.265-2.928.56-1.11.3-2.229.655-2.887.87a1.54 1.54 0 0 0-1.044 1.262c-.596 4.477.787 7.795 2.465 9.99a11.8 11.8 0 0 0 2.517 2.453c.386.273.744.482 1.048.625.28.132.581.24.829.24s.548-.108.829-.24a7 7 0 0 0 1.048-.625 11.8 11.8 0 0 0 2.517-2.453c1.678-2.195 3.061-5.513 2.465-9.99a1.54 1.54 0 0 0-1.044-1.263 63 63 0 0 0-2.887-.87C9.843.266 8.69 0 8 0m2.146 5.146a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 7.793z"/></svg></span>
+          <span>Guardrails</span>
+        </button>
+        <button class="sidebar-item" data-view="notifications">
+          <span class="icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bell-fill" viewBox="0 0 16 16">
+              <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2m.995-14.901a1 1 0 1 0-1.99 0A5 5 0 0 0 3 6c0 1.098-.5 6-2 7h14c-1.5-1-2-5.902-2-7 0-2.42-1.72-4.44-4.005-4.901"/>
+            </svg>
+          </span>
+          <span>Notifications</span>
+        </button>
+      </nav>
+    </aside>
+    <main class="content-panel">
+      <header class="panel-header">
+        <h2>Live keyword log</h2>
+        <span class="panel-icon" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-shield-fill-check" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M8 0c-.69 0-1.843.265-2.928.56-1.11.3-2.229.655-2.887.87a1.54 1.54 0 0 0-1.044 1.262c-.596 4.477.787 7.795 2.465 9.99a11.8 11.8 0 0 0 2.517 2.453c.386.273.744.482 1.048.625.28.132.581.24.829.24s.548-.108.829-.24a7 7 0 0 0 1.048-.625 11.8 11.8 0 0 0 2.517-2.453c1.678-2.195 3.061-5.513 2.465-9.99a1.54 1.54 0 0 0-1.044-1.263 63 63 0 0 0-2.887-.87C9.843.266 8.69 0 8 0m2.146 5.146a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 7.793z"/>
+          </svg>
+        </span>
+      </header>
+      <section class="status-view panel-section" data-view-panel="status" aria-live="polite">
+        <div class="status-circle" role="presentation"></div>
+        <p class="status-caption">All good</p>
+        <p class="status-subtitle">No unresolved issues detected</p>
+        <div class="status-footer" data-status-footer>
+          <span class="status-footer-icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clock-history" viewBox="0 0 16 16">
+              <path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022zm2.004.45a7 7 0 0 0-.985-.299l.219-.976q.576.129 1.126.342zm1.37.71a7 7 0 0 0-.439-.27l.493-.87a8 8 0 0 1 .979.654l-.615.789a7 7 0 0 0-.418-.302zm1.834 1.79a7 7 0 0 0-.653-.796l.724-.69q.406.429.747.91zm.744 1.352a7 7 0 0 0-.214-.468l.893-.45a8 8 0 0 1 .45 1.088l-.95.313a7 7 0 0 0-.179-.483m.53 2.507a7 7 0 0 0-.1-1.025l.985-.17q.1.58.116 1.17zm-.131 1.538q.05-.254.081-.51l.993.123a8 8 0 0 1-.23 1.155l-.964-.267q.069-.247.12-.501m-.952 2.379q.276-.436.486-.908l.914.405q-.24.54-.555 1.038zm-.964 1.205q.183-.183.35-.378l.758.653a8 8 0 0 1-.401.432z"/>
+              <path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0z"/>
+              <path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5"/>
+            </svg>
+          </span>
+          <span class="status-footer-copy" data-status-time>Last activity: none</span>
+        </div>
+      </section>
+      <section id="entries" class="entries panel-section" data-view-panel="feed" aria-live="polite"></section>
+      <section class="guardrails-view panel-section" data-view-panel="guardrails" aria-live="polite">
+        <div class="guardrail-card" data-card="keywords">
+          <div class="guardrail-card-header">
+            <h3>My Keywords and Themes</h3>
+            <button class="guardrail-close" type="button" aria-label="Close guardrail view">×</button>
+          </div>
+          <div class="guardrail-content">
+            <p>Visibility into the language that matters most.</p>
+            <form class="keywords-form" data-keywords-form>
+              <input type="text" name="keyword" placeholder="Add keyword or theme" />
+              <button type="submit">Add</button>
+            </form>
+            <div class="keywords-chips" data-keywords-chips></div>
+          </div>
+        </div>
+        <div class="guardrail-card">
+          <div class="guardrail-card-header">
+            <h3>Privacy Shield</h3>
+            <button class="guardrail-close" type="button" aria-label="Close guardrail view">×</button>
+          </div>
+          <div class="guardrail-content">
+            <p>Monitoring rules that keep sensitive topics guarded.</p>
+            <table class="privacy-table">
+              <tr>
+                <td>Home address</td>
+                <td>45 Tregarvon Street, London</td>
+                <td>Added 13th December 2025</td>
+                <td class="privacy-action" aria-label="Open actions">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                    class="bi bi-three-dots" viewBox="0 0 16 16">
+                    <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3"/>
+                  </svg>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </div>
+        <div class="guardrail-card">
+          <div class="guardrail-card-header">
+            <h3>Dialogue's Safety Net</h3>
+            <button class="guardrail-close" type="button" aria-label="Close guardrail view">×</button>
+          </div>
+          <div class="guardrail-content">
+            <p>Ensuring every exchange stays within safe boundaries.</p>
+          </div>
+        </div>
+      </section>
+      <section class="notification-panel panel-section" data-view-panel="notifications" aria-live="polite">
+        <div class="notification-summary">
+          <div class="notification-card">
+            <h3>My phone numbers</h3>
+            <p class="notification-placeholder">No numbers flagged yet.</p>
+          </div>
+          <div class="notification-card">
+            <h3>My emails</h3>
+            <p class="notification-placeholder">No emails flagged yet.</p>
+          </div>
+        </div>
+        <div class="notification-placeholder">
+          <p>No notifications yet.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="parent.js"></script>
+</body>
+</html>

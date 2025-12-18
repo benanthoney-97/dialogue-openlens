@@ -11,32 +11,34 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 
-// Connect to Databases
+// --- CONFIGURATION ---
+
+// 1. Supabase (Backend/Admin Access)
 const supabase = createClient(
-  process.env.PLASMO_PUBLIC_SUPABASE_URL, // 👈 MUST MATCH YOUR .ENV EXACTLY
-  process.env.SUPABASE_SERVICE_ROLE_KEY     // Keep this as is
+  process.env.PLASMO_PUBLIC_SUPABASE_URL, 
+  process.env.SUPABASE_SERVICE_ROLE_KEY     
 )
 
-// OpenAI for EMBEDDINGS (Math/Search only)
+// 2. OpenAI (Used for Embeddings/Search)
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
-// Gemini for GENERATION (Writing)
+// 3. Google Gemini (Used for Generating Advice)
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY)
-// Note: 'gemini-2.0-flash' is fast; switch to 'gemini-1.5-pro' for complex reasoning
 const geminiModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash" }) 
+
+
+// --- API ROUTES ---
 
 app.post('/api/analyze', async (req, res) => {
   try {
-    // 1. RECEIVE REQUEST
-    const { text, scanType, providerId } = req.body 
+    const { text, scanType, providerId, forceFallback } = req.body // 👈 Added forceFallback flag
     
     console.log(`\n---------------------------------------------------`)
     console.log(`🔍 NEW REQUEST: Analyzing for Provider ID: ${providerId}`)
     console.log(`📝 Text Snippet: "${text.slice(0, 40)}..."`)
 
-    // 2. FETCH PROVIDER + INHERIT TYPE PERSONA
-    // We fetch the provider's name AND the linked system_prompt from provider_types
-    const { data: provider } = await supabase
+    // 1. FETCH PROVIDER & PERSONA (SYSTEM PROMPT)
+    const { data: provider, error: dbError } = await supabase
       .from('providers') 
       .select(`
         name,
@@ -47,89 +49,100 @@ app.post('/api/analyze', async (req, res) => {
       .eq('id', providerId)
       .single()
 
-    if (!provider) {
-        console.error("❌ Provider not found")
+    if (dbError || !provider) {
+        console.error("❌ Provider Lookup Error:", dbError)
         return res.status(404).json({ error: "Provider not found" })
     }
 
-    // Safely extract the nested prompt
     // @ts-ignore
-    const systemPrompt = provider.provider_types?.system_prompt
-
-    if (!systemPrompt) {
-        console.error("❌ Configuration Error: Provider has no linked Type/Prompt")
-        return res.status(500).json({ error: "Provider misconfigured" })
-    }
-
+    const systemPrompt = provider.provider_types?.system_prompt || "You are a helpful assistant."
     console.log(`🎭 Acting as: ${provider.name}`)
 
-    // 3. EMBED (OpenAI)
+    // 2. EMBED INPUT TEXT (OpenAI)
     console.log(`🧮 Generating Vectors...`)
     const embeddingResponse = await openai.embeddings.create({
       model: 'text-embedding-3-small',
-      input: text,
+      input: text.substring(0, 8000), 
     })
     const vector = embeddingResponse.data[0].embedding
 
-    // 4. SEARCH (Supabase - Scoped to Provider)
+    // 3. SEARCH INTERNAL KNOWLEDGE (RAG)
     console.log(`🗄️ Querying Provider Knowledge...`)
     const { data: documents } = await supabase.rpc('match_provider_knowledge', {
       query_embedding: vector,
       match_threshold: 0.5,
       match_count: 3,
-      filter_provider_id: providerId // 🔒 SECURITY: Only search this provider's brain
+      filter_provider_id: providerId 
     })
 
-    if (!documents || documents.length === 0) {
-      console.log(`❌ No matches found.`)
-      return res.json({ match: false })
+    const hasKnowledge = documents && documents.length > 0
+
+    // 🛑 STOP LOGIC: If no knowledge & user hasn't forced it, stop here.
+    if (!hasKnowledge && !forceFallback) {
+        console.log("⚠️ No internal matches. Stopping for user confirmation.")
+        return res.json({ 
+            match: false, 
+            advice: null, 
+            requiresConfirmation: true // 👈 Triggers the CTA on frontend
+        })
     }
-    console.log(`✅ Found Match: "${documents[0].title}"`)
 
-    // 5. PREPARE PROMPT
-    const context = documents.map(doc => 
-      `SOURCE: ${doc.title}\nCONTENT: ${doc.content}`
-    ).join("\n\n")
+    // 4. PREPARE CONTEXT
+    let internalKnowledge = ""
+    let matchType = false
 
-    const dynamicPrompt = `
+    if (hasKnowledge) {
+        console.log(`✅ Found ${documents.length} Internal Precedents`)
+        internalKnowledge = documents.map(doc => 
+            `SOURCE: ${doc.title}\nCONTENT: ${doc.content}`
+        ).join("\n\n")
+        matchType = true
+    } else {
+        console.log(`⚠️ Force Fallback Active. Using General Expertise.`)
+        internalKnowledge = "No specific internal documents matched. Rely on general professional expertise."
+        matchType = false 
+    }
+
+    // 5. CONSTRUCT DYNAMIC PROMPT
+    const fullPrompt = `
       ${systemPrompt} 
 
-      INPUT CONTEXT:
-      The user is reading this text: "${text}".
+      TASK CONTEXT:
+      The user is performing a "${scanType}" scan on a webpage.
       
-      INTERNAL KNOWLEDGE:
-      ${context}
+      INPUT TEXT TO ANALYZE:
+      "${text.substring(0, 15000)}"
+      
+      INTERNAL KNOWLEDGE REFERENCE:
+      ${internalKnowledge}
 
-      FORMATTING RULES:
-      1. Use clear Markdown headers.
-      2. Do not use code blocks.
-      3. Avoid robotic transitions.
+      INSTRUCTIONS:
+      1. Analyze the INPUT TEXT based *strictly* on your persona.
+      2. If "Internal Knowledge" is present, cite it to reinforce your points.
+      3. If no internal knowledge is present, explicitly state: "Based on general principles (no specific internal precedent found)..."
+      4. Output using clear Markdown (Headers, Bullet points).
+      5. Be concise and high-impact.
     `
 
-    // 6. GENERATE (Gemini)
+    // 6. GENERATE ADVICE (Gemini)
     console.log(`🤖 CALLING GEMINI...`)
     
     const result = await geminiModel.generateContent({
-      contents: [{ role: "user", parts: [{ text: dynamicPrompt }] }],
+      contents: [{ role: "user", parts: [{ text: fullPrompt }] }],
       generationConfig: {
-        temperature: 0.0,      // Robot mode (Strict adherence to prompt)
-        maxOutputTokens: 8192, // 🚀 High limit to prevent "thinking" truncation
+        temperature: 0.1,      
+        maxOutputTokens: 8192, 
       }
     })
     
     const response = result.response
     const advice = response.text()
 
-    // 🔍 DEBUG: Log usage
-    if (response.usageMetadata) {
-        console.log(`📊 Token Usage:`, JSON.stringify(response.usageMetadata))
-    }
-
-    // 7. SEND RESPONSE
+    // 7. SEND RESULT
     res.json({ 
-      match: true, 
-      report: documents[0], 
-      advice: advice 
+      match: matchType, 
+      advice: advice,
+      requiresConfirmation: false
     })
 
   } catch (err) {
